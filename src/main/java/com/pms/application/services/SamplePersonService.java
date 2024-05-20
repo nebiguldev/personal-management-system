@@ -25,6 +25,9 @@ public class SamplePersonService {
         return repository.save(entity);
     }
 
+    public void savePerson(SamplePerson person) {
+        repository.save(person);
+    }
     public void delete(Long id) {
         repository.deleteById(id);
     }

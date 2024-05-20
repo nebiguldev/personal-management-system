@@ -54,6 +54,7 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
+    private final Button update = new Button("Update");
 
     private final BeanValidationBinder<SamplePerson> binder;
 
@@ -82,7 +83,7 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
         grid.addColumn("occupation").setAutoWidth(true);
         grid.addColumn("role").setAutoWidth(true);
         LitRenderer<SamplePerson> importantRenderer = LitRenderer.<SamplePerson>of(
-                "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
+                        "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
                 .withProperty("icon", important -> important.isImportant() ? "check" : "minus").withProperty("color",
                         important -> important.isImportant()
                                 ? "var(--lumo-primary-text-color)"
@@ -91,7 +92,7 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
         grid.addColumn(importantRenderer).setHeader("Important").setAutoWidth(true);
 
         grid.setItems(query -> samplePersonService.list(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+                        PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
@@ -123,10 +124,34 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
                     this.samplePerson = new SamplePerson();
                 }
                 binder.writeBean(this.samplePerson);
+                samplePersonService.savePerson(this.samplePerson);
+                clearForm();
+                refreshGrid();
+                Notification.show("Data saved successfully.");
+                UI.getCurrent().navigate(MasterDetailView.class);
+            } catch (ObjectOptimisticLockingFailureException exception) {
+                Notification n = Notification.show(
+                        "Error saving the data. Somebody else has updated the record while you were making changes.");
+                n.setPosition(Position.MIDDLE);
+                n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } catch (ValidationException validationException) {
+                Notification.show("Failed to save the data. Please check that all values are valid.");
+            } catch (Exception ex) {
+                Notification.show("An unexpected error occurred. Please try again.");
+            }
+        });
+
+        update.addClickListener(e -> {
+            try {
+                if (this.samplePerson == null) {
+                    Notification.show("No person selected for updating.");
+                    return;
+                }
+                binder.writeBean(this.samplePerson);
                 samplePersonService.update(this.samplePerson);
                 clearForm();
                 refreshGrid();
-                Notification.show("Data updated");
+                Notification.show("Data updated successfully.");
                 UI.getCurrent().navigate(MasterDetailView.class);
             } catch (ObjectOptimisticLockingFailureException exception) {
                 Notification n = Notification.show(
@@ -134,7 +159,9 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
                 n.setPosition(Position.MIDDLE);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
             } catch (ValidationException validationException) {
-                Notification.show("Failed to update the data. Check again that all values are valid");
+                Notification.show("Failed to update the data. Please check that all values are valid.");
+            } catch (Exception ex) {
+                Notification.show("An unexpected error occurred. Please try again.");
             }
         });
     }
@@ -188,7 +215,8 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
         buttonLayout.setClassName("button-layout");
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        buttonLayout.add(save, cancel);
+        update.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        buttonLayout.add(save, update, cancel);
         editorLayoutDiv.add(buttonLayout);
     }
 
@@ -211,6 +239,5 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
     private void populateForm(SamplePerson value) {
         this.samplePerson = value;
         binder.readBean(this.samplePerson);
-
     }
 }

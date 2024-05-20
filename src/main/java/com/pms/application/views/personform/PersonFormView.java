@@ -1,11 +1,14 @@
 package com.pms.application.views.personform;
 
+import com.pms.application.data.SamplePerson;
+import com.pms.application.services.SamplePersonService;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,16 +25,27 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 @Route(value = "person-form")
 public class PersonFormView extends Composite<VerticalLayout> {
 
-    public PersonFormView() {
+    private final SamplePersonService personService;
+
+    private TextField firstName;
+    private TextField lastName;
+    private DatePicker birthday;
+    private TextField phoneNumber;
+    private EmailField email;
+    private TextField occupation;
+
+    public PersonFormView(SamplePersonService personService) {
+        this.personService = personService;
+
         VerticalLayout layoutColumn2 = new VerticalLayout();
         H3 h3 = new H3();
         FormLayout formLayout2Col = new FormLayout();
-        TextField textField = new TextField();
-        TextField textField2 = new TextField();
-        DatePicker datePicker = new DatePicker();
-        TextField textField3 = new TextField();
-        EmailField emailField = new EmailField();
-        TextField textField4 = new TextField();
+        firstName = new TextField();
+        lastName = new TextField();
+        birthday = new DatePicker();
+        phoneNumber = new TextField();
+        email = new EmailField();
+        occupation = new TextField();
         HorizontalLayout layoutRow = new HorizontalLayout();
         Button buttonPrimary = new Button();
         Button buttonSecondary = new Button();
@@ -45,12 +59,12 @@ public class PersonFormView extends Composite<VerticalLayout> {
         h3.setText("Personal Information");
         h3.setWidth("100%");
         formLayout2Col.setWidth("100%");
-        textField.setLabel("First Name");
-        textField2.setLabel("Last Name");
-        datePicker.setLabel("Birthday");
-        textField3.setLabel("Phone Number");
-        emailField.setLabel("Email");
-        textField4.setLabel("Occupation");
+        firstName.setLabel("First Name");
+        lastName.setLabel("Last Name");
+        birthday.setLabel("Birthday");
+        phoneNumber.setLabel("Phone Number");
+        email.setLabel("Email");
+        occupation.setLabel("Occupation");
         layoutRow.addClassName(Gap.MEDIUM);
         layoutRow.setWidth("100%");
         layoutRow.getStyle().set("flex-grow", "1");
@@ -59,17 +73,47 @@ public class PersonFormView extends Composite<VerticalLayout> {
         buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         buttonSecondary.setText("Cancel");
         buttonSecondary.setWidth("min-content");
+
+        // Save button click listener
+        buttonPrimary.addClickListener(e -> savePerson());
+
+        // Cancel button click listener
+        buttonSecondary.addClickListener(e -> clearForm());
+
         getContent().add(layoutColumn2);
         layoutColumn2.add(h3);
         layoutColumn2.add(formLayout2Col);
-        formLayout2Col.add(textField);
-        formLayout2Col.add(textField2);
-        formLayout2Col.add(datePicker);
-        formLayout2Col.add(textField3);
-        formLayout2Col.add(emailField);
-        formLayout2Col.add(textField4);
+        formLayout2Col.add(firstName);
+        formLayout2Col.add(lastName);
+        formLayout2Col.add(birthday);
+        formLayout2Col.add(phoneNumber);
+        formLayout2Col.add(email);
+        formLayout2Col.add(occupation);
         layoutColumn2.add(layoutRow);
         layoutRow.add(buttonPrimary);
         layoutRow.add(buttonSecondary);
+    }
+
+    private void savePerson() {
+        SamplePerson person = new SamplePerson();
+        person.setFirstName(firstName.getValue());
+        person.setLastName(lastName.getValue());
+        person.setDateOfBirth(birthday.getValue());
+        person.setPhone(phoneNumber.getValue());
+        person.setEmail(email.getValue());
+        person.setOccupation(occupation.getValue());
+
+        personService.savePerson(person);
+        Notification.show("Person saved!");
+        clearForm();
+    }
+
+    private void clearForm() {
+        firstName.clear();
+        lastName.clear();
+        birthday.clear();
+        phoneNumber.clear();
+        email.clear();
+        occupation.clear();
     }
 }

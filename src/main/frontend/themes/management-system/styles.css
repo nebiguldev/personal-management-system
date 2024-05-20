@@ -1,6 +1,5 @@
 @import url('./views/location-view.css');
 @import url('./views/gridwith-filters-view.css');
-@import url('./views/dashboard-view.css');
 @import url('./views/master-detail-view.css');    html {
       --lumo-primary-color: hsl(214, 48%, 37%);
       --lumo-primary-color-50pct: hsla(214, 48%, 37%, 0.5);
